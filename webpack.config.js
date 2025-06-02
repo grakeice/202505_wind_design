@@ -1,5 +1,6 @@
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
+import { CleanWebpackPlugin } from "clean-webpack-plugin";
 import path from "path";
 
 export default {
@@ -25,14 +26,21 @@ export default {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: "./src/index.html",
+			template: "./src/templates/index.html",
+			inject: "body",
 		}),
 		new MiniCssExtractPlugin({
 			filename: "style/[name].css",
 		}),
+		new CleanWebpackPlugin(),
 	],
 	resolve: {
 		extensions: [".ts", ".js", ".scss"],
+	},
+	externals: {
+		gsap: "gsap",
+		p5: "p5",
+		"matter-js": "Matter",
 	},
 	watchOptions: {
 		ignored: /node_modules/,

@@ -27,7 +27,7 @@ export class ParticleRenderer {
 			p.push();
 			p.fill(particle.color);
 			p.noStroke();
-			p.circle(particle.position.x, particle.position.y, particle.radius);
+			p.circle(particle.position.x, particle.position.y, particle.radius * 2);
 			p.pop();
 		}
 	}

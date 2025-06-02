@@ -77,6 +77,7 @@ abstract class Particle implements IParticle {
 		this.targetWorld = targetWorld;
 	}
 }
+
 export class Leaf extends Particle {
 	constructor({
 		targetWorld,
