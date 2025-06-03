@@ -161,7 +161,7 @@ export class Sakura extends Particle {
 		angle = 0,
 		angularSpeed = 0,
 		radius = 10,
-		color = "#ff00ff",
+		color = "#ffb6c1",
 	}: ParticleConstructorArguments) {
 		super({
 			targetWorld,
@@ -174,13 +174,40 @@ export class Sakura extends Particle {
 			radius,
 			color,
 		});
-		this.body = Bodies.polygon(this.position.x, this.position.y, 5, radius, {
-			friction: 0.1,
-			restitution: 0.8,
-			frictionAir: 0.06,
-		});
+		const createPetalVertices = () => {
+			// 桜の花びらの形状に近い頂点を定義
+			const vertices: Matter.Vector[] = [
+				Vector.create(0, radius * 0.8), // 底部（茎の部分）
+				Vector.create(radius * 0.4, radius * 0.3), // 右下
+				Vector.create(radius * 0.7, -radius * 0.2), // 右中
+				Vector.create(radius * 0.5, -radius * 0.7), // 右上の膨らみ
+				Vector.create(radius * 0.3, -radius * 0.9), // 右上切れ込み手前
+				Vector.create(0, -radius * 0.85), // 切れ込みの中央
+				Vector.create(-radius * 0.3, -radius * 0.9), // 左上切れ込み手前
+				Vector.create(-radius * 0.5, -radius * 0.7), // 左上の膨らみ
+				Vector.create(-radius * 0.7, -radius * 0.2), // 左中
+				Vector.create(-radius * 0.4, radius * 0.3), // 左下
+			];
+
+			return vertices;
+		};
+		const petalVertices = createPetalVertices();
+		this.body = Bodies.fromVertices(
+			this.position.x,
+			this.position.y,
+			[petalVertices],
+			{
+				friction: 1,
+				restitution: 0,
+				frictionAir: 0.03 * this.radius,
+				density: 0.005 * this.radius,
+				angle: this.angle,
+				angularVelocity: this.angularSpeed,
+			}
+		);
 		World.add(this.targetWorld, this.body);
 	}
+
 	updatePosition(): { x: number; y: number; angle: number } {
 		this.position.x = this.body.position.x;
 		this.position.y = this.body.position.y;

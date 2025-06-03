@@ -8,7 +8,6 @@ import path from "path";
 export default {
 	entry: {
 		index: path.resolve(import.meta.dirname, "./src/ts/index"),
-		particle: path.resolve(import.meta.dirname, "./src/ts/particle_index"),
 	},
 	output: {
 		filename: "js/[name].js",
@@ -43,12 +42,6 @@ export default {
 		],
 	},
 	plugins: [
-		new HtmlWebpackPlugin({
-			template: "./src/templates/particle_index.html",
-			inject: "body",
-			chunks: ["particle"],
-			filename: "particle_index.html",
-		}),
 		new HtmlWebpackPlugin({
 			template: "./src/templates/index.html",
 			inject: "body",

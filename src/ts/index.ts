@@ -2,7 +2,7 @@ import "../style/index";
 import p5 from "p5";
 import { ParticleRenderer } from "./ParticleRenderer";
 import { Bodies, Engine, World } from "matter-js";
-import { Circle, IParticle } from "./Particles";
+import { Circle, IParticle, Sakura } from "./Particles";
 
 const requestAccessMotionSensorPermission = () => {
 	const deviceMotionEventAny = DeviceMotionEvent as any;
@@ -25,20 +25,24 @@ const requestAccessMotionSensorPermission = () => {
 };
 
 const isIOS = /iP(hone|(o|a)d)/.test(navigator.userAgent);
-console.log(isIOS);
 
 document
 	.getElementById("permission")
 	?.addEventListener("click", requestAccessMotionSensorPermission);
 
 const deviceAcceleration = { x: 0, y: 0, z: 0 };
+let gravityX = 0;
+const smoothingFactor = 0.1;
 
 const handleDeviceMotion = (event: DeviceMotionEvent) => {
 	const adjustIOS = isIOS ? -1 : 1;
 	if (event.accelerationIncludingGravity) {
-		deviceAcceleration.x = (event.acceleration?.x ?? 0) * adjustIOS * -1;
-		deviceAcceleration.y = (event.acceleration?.y ?? 0) * adjustIOS * -1;
-		deviceAcceleration.z = (event.acceleration?.z ?? 0) * adjustIOS * -1;
+		deviceAcceleration.x =
+			(event.accelerationIncludingGravity?.x ?? 0) * adjustIOS * -1;
+		deviceAcceleration.y =
+			(event.accelerationIncludingGravity?.y ?? 0) * adjustIOS * -1;
+		deviceAcceleration.z =
+			(event.accelerationIncludingGravity?.z ?? 0) * adjustIOS * -1;
 	}
 };
 
@@ -60,19 +64,25 @@ const sketch = (p: p5) => {
 			p.height - 10, // y座標（画面下部）
 			p.width, // 幅（画面幅）
 			20, // 高さ
-			{ isStatic: true } // 動かない静的オブジェクト
+			{
+				isStatic: true,
+				friction: 0.5,
+			}
 		);
 		World.add(world, ground);
 		p.background(255);
 	};
 	p.draw = () => {
 		p.background(255);
-		// 加速度センサーの値を重力として設定
-		// デバイスを左に傾けると負の値、右に傾けると正の値
-		const gravityX = deviceAcceleration.x * 1; // 強度を調整
-		const gravityY = 1; // 通常の重力（下向き）
+		// 目標となる重力値
+		const targetGravityX = deviceAcceleration.x * 1;
 
-		engine.world.gravity.x = gravityX;
+		// なめらかな重力変化（線形補間）
+		gravityX = p.lerp(gravityX, targetGravityX, smoothingFactor);
+
+		// 重力を設定
+		const gravityY = 1;
+		engine.world.gravity.x = gravityX / 4;
 		engine.world.gravity.y = gravityY;
 
 		// 加速度の値を画面に表示（デバッグ用）
@@ -82,25 +92,45 @@ const sketch = (p: p5) => {
 		p.text(`Y: ${deviceAcceleration.y.toFixed(2)}`, 10, 50);
 		p.text(`Gravity X: ${gravityX.toFixed(4)}`, 10, 70);
 
-		engine.world.gravity.x = gravityX;
-		engine.world.gravity.y = gravityY;
+		if (p.frameCount % 3 === 0 && particles.size < 10000) {
+			// 画面外のランダムな位置を生成
+			const spawnArea = p.random(["top", "left", "right"]);
+			let x, y;
 
-		if (p.frameCount % 5 === 0 && particles.size < 2)
+			switch (spawnArea) {
+				case "top":
+					x = p.random(-50, p.width + 50);
+					y = p.random(-100, -50);
+					break;
+				case "left":
+					x = p.random(-p.width, -50);
+					y = p.random(-50, p.height / 2);
+					break;
+				case "right":
+					x = p.random(p.width + 50, p.width * 2);
+					y = p.random(-50, p.height / 2);
+					break;
+				default:
+					x = p.random(-50, p.width + 50);
+					y = p.random(-100, -50);
+			}
 			particles.add(
-				new Circle({
+				new Sakura({
 					targetWorld: world,
-					x: p.random(p.width),
-					y: p.random(p.height),
-					radius: p.random(10, 20),
+					x: x,
+					y: y,
+					radius: p.random(5, 8),
+					angle: p.random(0, p.TWO_PI), // ← ランダムな初期角度
+					angularSpeed: p.random(-0.05, 0.05), // ← ランダムな回転速度
+					color: p.random(["#ffb6c1", "#ffc0cb", "#ff69b4"]),
 				})
 			);
+		}
 		const toDelete: Set<IParticle> = new Set();
 		for (const particle of particles) {
 			const position = particle.updatePosition();
 			const isOnField =
-				0 <= position.x + particle.radius &&
-				position.x - particle.radius <= p.width &&
-				0 <= position.y + particle.radius &&
+				-100 <= position.y + particle.radius &&
 				position.y - particle.radius <= p.height;
 
 			if (isOnField) {
