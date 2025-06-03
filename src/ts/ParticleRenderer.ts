@@ -9,15 +9,20 @@ export class ParticleRenderer {
 	private targetWorld: Matter.World;
 
 	constructor(
-		canvasWidth: number,
-		canvasHeight: number,
 		targetField: p5 | p5.Graphics,
-		targetWorld: Matter.World
+		targetWorld: Matter.World,
+		canvasWidth?: number,
+		canvasHeight?: number
 	) {
-		this.canvasWidth = canvasWidth;
-		this.canvasHeight = canvasHeight;
+		this.canvasWidth = canvasWidth ?? targetField.windowWidth;
+		this.canvasHeight = canvasHeight ?? targetField.windowHeight;
 		this.targetField = targetField;
 		this.targetWorld = targetWorld;
+	}
+
+	resizeCanvas(width: number, height: number) {
+		this.canvasWidth = width;
+		this.canvasHeight = height;
 	}
 
 	drawParticle(particle: IParticle): void {

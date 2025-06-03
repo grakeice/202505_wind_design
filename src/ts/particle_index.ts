@@ -1,4 +1,4 @@
-import "../style/index";
+import "../style/particle_index";
 import p5 from "p5";
 import { Bodies, Engine, World } from "matter-js";
 import { Circle, IParticle, Sakura } from "./Particles";
@@ -66,7 +66,7 @@ canvasSakura: {
 		p.setup = () => {
 			const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
 			canvas.parent("#canvas-sakura");
-			renderer = new ParticleRenderer(p.width, p.height, p, world);
+			renderer = new ParticleRenderer(p, world);
 			ground = Bodies.rectangle(
 				p.width / 2, // x座標（画面中央）
 				p.height - 10, // y座標（画面下部）
@@ -136,7 +136,7 @@ canvasTree: {
 		p.setup = () => {
 			const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
 			canvas.parent("#canvas-tree");
-			renderer = new ParticleRenderer(p.width, p.height, p, world);
+			renderer = new ParticleRenderer(p, world);
 			p.background(255);
 		};
 		p.draw = () => {

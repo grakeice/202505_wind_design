@@ -44,8 +44,16 @@ export default {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
+			template: "./src/templates/particle_index.html",
+			inject: "body",
+			chunks: ["particle"],
+			filename: "particle_index.html",
+		}),
+		new HtmlWebpackPlugin({
 			template: "./src/templates/index.html",
 			inject: "body",
+			chunks: ["index"],
+			filename: "index.html",
 		}),
 		new MiniCssExtractPlugin({
 			filename: "style/[name].css",
@@ -103,11 +111,11 @@ export default {
 	resolve: {
 		extensions: [".ts", ".js", ".scss"],
 	},
-	// externals: {
-	// 	gsap: "gsap",
-	// 	p5: "p5",
-	// 	"matter-js": "Matter",
-	// },
+	externals: {
+		gsap: "gsap",
+		p5: "p5",
+		"matter-js": "Matter",
+	},
 	watchOptions: {
 		ignored: /node_modules/,
 	},
