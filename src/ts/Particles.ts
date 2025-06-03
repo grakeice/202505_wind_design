@@ -1,4 +1,4 @@
-import Matter, { Bodies, World } from "matter-js";
+import Matter, { Bodies, Vector, World } from "matter-js";
 
 /**
  * Arguments for constructing a Particle instance.
@@ -144,6 +144,44 @@ export class Circle extends Particle {
 	}
 
 	updatePosition() {
+		this.position.x = this.body.position.x;
+		this.position.y = this.body.position.y;
+		this.angle = this.body.angle;
+		return { x: this.position.x, y: this.position.y, angle: this.angle };
+	}
+}
+
+export class Sakura extends Particle {
+	constructor({
+		targetWorld,
+		x,
+		y,
+		dx = 0,
+		dy = 0,
+		angle = 0,
+		angularSpeed = 0,
+		radius = 10,
+		color = "#ff00ff",
+	}: ParticleConstructorArguments) {
+		super({
+			targetWorld,
+			x,
+			y,
+			dx,
+			dy,
+			angle,
+			angularSpeed,
+			radius,
+			color,
+		});
+		this.body = Bodies.polygon(this.position.x, this.position.y, 5, radius, {
+			friction: 0.1,
+			restitution: 0.8,
+			frictionAir: 0.06,
+		});
+		World.add(this.targetWorld, this.body);
+	}
+	updatePosition(): { x: number; y: number; angle: number } {
 		this.position.x = this.body.position.x;
 		this.position.y = this.body.position.y;
 		this.angle = this.body.angle;
