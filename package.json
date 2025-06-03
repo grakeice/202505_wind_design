@@ -8,7 +8,8 @@
 		"build": "webpack",
 		"dev": "webpack --mode development --watch",
 		"prod": "webpack --mode production",
-		"server": "deno run -R -N ./server.ts"
+		"server": "deno run -R -N ./server.ts",
+		"deploy": "webpack --mode production; gh-pages -d dist"
 	},
 	"repository": {
 		"type": "git",
@@ -41,5 +42,8 @@
 		"ts-loader": "^9.5.2",
 		"webpack": "^5.99.9",
 		"webpack-cli": "^6.0.1"
+	},
+	"dependencies": {
+		"gh-pages": "^6.3.0"
 	}
 }

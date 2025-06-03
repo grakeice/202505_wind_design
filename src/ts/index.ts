@@ -2,7 +2,7 @@ import "../style/index";
 import p5 from "p5";
 import { ParticleRenderer } from "./ParticleRenderer";
 import { Bodies, Engine, World } from "matter-js";
-import { Circle, IParticle, Sakura } from "./Particles";
+import { IParticle, Sakura } from "./Particles";
 
 const requestAccessMotionSensorPermission = () => {
 	const deviceMotionEventAny = DeviceMotionEvent as any;
