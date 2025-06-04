@@ -1,38 +1,92 @@
 import "../style/index";
 import p5 from "p5";
+import gsap from "gsap";
 import { ParticleRenderer } from "./ParticleRenderer";
 import { Bodies, Engine, World } from "matter-js";
 import { IParticle, Sakura } from "./Particles";
-
-const requestAccessMotionSensorPermission = () => {
-	const deviceMotionEventAny = DeviceMotionEvent as any;
-	if (typeof deviceMotionEventAny.requestPermission === "function") {
-		deviceMotionEventAny
-			.requestPermission()
-			.then((response: string) => {
-				if (response === "granted") {
-					console.log("Device motion permission granted.");
-				} else {
-					console.warn("Device motion permission denied.");
-				}
-			})
-			.catch((error: any) => {
-				console.error("Error requesting device motion permission:", error);
-			});
-	} else {
-		console.warn("Device motion permission request not supported.");
-	}
-};
+import { sakura as image } from "./photo";
 
 const isIOS = /iP(hone|(o|a)d)/.test(navigator.userAgent);
-
-document
-	.getElementById("permission")
-	?.addEventListener("click", requestAccessMotionSensorPermission);
 
 const deviceAcceleration = { x: 0, y: 0, z: 0 };
 let gravityX = 0;
 const smoothingFactor = 0.1;
+
+const sleep = async (delay: number) => new Promise((r) => setTimeout(r, delay));
+
+const requestAccessMotionSensorPermission = async (): Promise<boolean> => {
+	const deviceMotionEventAny = DeviceMotionEvent as any;
+
+	if (typeof deviceMotionEventAny.requestPermission === "function") {
+		try {
+			const response: string = await deviceMotionEventAny.requestPermission();
+			if (response === "granted") {
+				console.log("Device motion permission granted.");
+				return true;
+			} else {
+				console.warn("Device motion permission denied.");
+				return false;
+			}
+		} catch (error: any) {
+			console.error("Error requesting device motion permission:", error);
+			return false;
+		}
+	} else {
+		console.warn("Device motion permission request not supported.");
+		// デスクトップ環境では許可されたものとして扱う
+		return true;
+	}
+};
+
+const displaySplash = async function* () {
+	gsap
+		.timeline()
+		.to("#splash-title", {
+			opacity: 0,
+			filter: "blur(10px)",
+			transition: 1000,
+		})
+		.set("#splash-title", {
+			visibility: "hidden",
+		})
+		.to("#start", {
+			visibility: "visible",
+		})
+		.to(
+			"#start",
+			{
+				opacity: 1,
+				transition: 500,
+			},
+			"-=0.5"
+		);
+	yield;
+	window.dispatchEvent(splashEndEvent);
+	gsap
+		.timeline()
+		.to("#splash", {
+			opacity: 0,
+		})
+		.to("meta[name=theme-color]", {
+			attr: { content: "#fff6f1" },
+		})
+		.to("#splash", {
+			visibility: "hidden",
+		});
+};
+
+window.addEventListener("load", async () => {
+	await sleep(1000);
+	const tmp = displaySplash();
+	tmp.next();
+	const startButton = document.getElementById("start");
+	if (startButton) {
+		addEventListener("click", async () => {
+			await requestAccessMotionSensorPermission();
+			tmp.next();
+		});
+	}
+});
 
 const handleDeviceMotion = (event: DeviceMotionEvent) => {
 	const adjustIOS = isIOS ? -1 : 1;
@@ -54,26 +108,33 @@ const sketch = (p: p5) => {
 	const renderer = new ParticleRenderer(p, world);
 	const particles: Set<IParticle> = new Set();
 	let ground: Matter.Body;
+	const img = p.loadImage(image);
 
 	p.setup = () => {
 		const canvas = p.createCanvas(p.windowWidth, p.windowHeight);
 		canvas.parent("#field");
 		// 地面を作成
-		ground = Bodies.rectangle(
-			p.width / 2, // x座標（画面中央）
-			p.height - 10, // y座標（画面下部）
-			p.width, // 幅（画面幅）
-			20, // 高さ
-			{
-				isStatic: true,
-				friction: 0.5,
-			}
-		);
+		ground = Bodies.rectangle(p.width / 2, p.height, p.width, 20, {
+			isStatic: true,
+			friction: 0.5,
+		});
 		World.add(world, ground);
-		p.background(255);
+		p.background("#fff6f1");
 	};
 	p.draw = () => {
-		p.background(255);
+		p.background("#fff6f1");
+		// 地面を描画
+		p.fill(139, 69, 19);
+		p.noStroke();
+		p.rect(0, p.height - 20, p.width, 20);
+
+		p.image(
+			img,
+			p.width / 6,
+			p.height - (p.width / 3 / 6) * 2 * 5 - 10,
+			(p.width / 3) * 2,
+			(p.width / 3 / 6) * 2 * 5
+		);
 		// 目標となる重力値
 		const targetGravityX = deviceAcceleration.x * 1;
 
@@ -82,18 +143,19 @@ const sketch = (p: p5) => {
 
 		// 重力を設定
 		const gravityY = 1;
-		engine.world.gravity.x = gravityX / 4;
-		engine.world.gravity.y = gravityY;
+		engine.gravity.x = gravityX / 4;
+		engine.gravity.y = gravityY;
 
 		// 加速度の値を画面に表示（デバッグ用）
+		/*
 		p.fill(0);
 		p.textSize(16);
 		p.text(`X: ${deviceAcceleration.x.toFixed(2)}`, 10, 30);
 		p.text(`Y: ${deviceAcceleration.y.toFixed(2)}`, 10, 50);
 		p.text(`Gravity X: ${gravityX.toFixed(4)}`, 10, 70);
+		*/
 
 		if (p.frameCount % 3 === 0 && particles.size < 10000) {
-			// 画面外のランダムな位置を生成
 			const spawnArea = p.random(["top", "left", "right"]);
 			let x, y;
 
@@ -120,8 +182,8 @@ const sketch = (p: p5) => {
 					x: x,
 					y: y,
 					radius: p.random(5, 8),
-					angle: p.random(0, p.TWO_PI), // ← ランダムな初期角度
-					angularSpeed: p.random(-0.05, 0.05), // ← ランダムな回転速度
+					angle: p.random(0, p.TWO_PI),
+					angularSpeed: p.random(-0.05, 0.05),
 					color: p.random(["#ffb6c1", "#ffc0cb", "#ff69b4"]),
 				})
 			);
@@ -145,7 +207,16 @@ const sketch = (p: p5) => {
 		}
 		Engine.update(engine, 1000 / 60);
 	};
-	p.mouseClicked = () => {};
 };
 
-new p5(sketch);
+window.addEventListener("splash-end", () => {
+	new p5(sketch);
+});
+
+const splashEndEvent = new CustomEvent("splash-end");
+
+declare global {
+	interface WindowEventMap {
+		"splash-end": CustomEvent<unknown>;
+	}
+}

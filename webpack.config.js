@@ -32,13 +32,6 @@ export default {
 					"sass-loader",
 				],
 			},
-			{
-				test: /\.(jpe?g|png)$/i,
-				type: "asset",
-				generator: {
-					filename: "assets/images/[contenthash][ext]",
-				},
-			},
 		],
 	},
 	plugins: [
@@ -51,56 +44,53 @@ export default {
 		new MiniCssExtractPlugin({
 			filename: "style/[name].css",
 		}),
+		new ImageMinimizerPlugin({
+			test: /\.(jpe?g|png)$/i,
+			generator: [
+				{
+					preset: "webp",
+					filename: "./assets/images/[name][ext]",
+					implementation: ImageMinimizerPlugin.sharpGenerate,
+					options: {
+						encodeOptions: {
+							webp: {},
+						},
+					},
+				},
+				{
+					preset: "avif",
+					filename: "./assets/images/[name][ext]",
+					implementation: ImageMinimizerPlugin.sharpGenerate,
+					options: {
+						encodeOptions: {
+							avif: {},
+						},
+					},
+				},
+				{
+					preset: "jpeg",
+					filename: "./assets/images/[name][ext]",
+					implementation: ImageMinimizerPlugin.sharpGenerate,
+					options: {
+						encodeOptions: {
+							jpeg: {},
+						},
+					},
+				},
+				{
+					preset: "png",
+					filename: "./assets/images/[name][ext]",
+					implementation: ImageMinimizerPlugin.sharpGenerate,
+					options: {
+						encodeOptions: {
+							png: {},
+						},
+					},
+				},
+			],
+		}),
 		new CleanWebpackPlugin(),
 	],
-	optimization: {
-		minimizer: [
-			new ImageMinimizerPlugin({
-				generator: [
-					{
-						preset: "webp",
-						filename: "[contenthash][ext]",
-						implementation: ImageMinimizerPlugin.sharpGenerate,
-						options: {
-							encodeOptions: {
-								webp: {},
-							},
-						},
-					},
-					{
-						preset: "avif",
-						filename: "[contenthash][ext]",
-						implementation: ImageMinimizerPlugin.sharpGenerate,
-						options: {
-							encodeOptions: {
-								avif: {},
-							},
-						},
-					},
-					{
-						preset: "jpeg",
-						filename: "[contenthash][ext]",
-						implementation: ImageMinimizerPlugin.sharpGenerate,
-						options: {
-							encodeOptions: {
-								jpeg: {},
-							},
-						},
-					},
-					{
-						preset: "png",
-						filename: "[contenthash][ext]",
-						implementation: ImageMinimizerPlugin.sharpGenerate,
-						options: {
-							encodeOptions: {
-								png: {},
-							},
-						},
-					},
-				],
-			}),
-		],
-	},
 	resolve: {
 		extensions: [".ts", ".js", ".scss"],
 	},
