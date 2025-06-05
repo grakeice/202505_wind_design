@@ -64,6 +64,9 @@ const displaySplash = async function* () {
 	window.dispatchEvent(splashEndEvent);
 	gsap
 		.timeline()
+		.to("#start", {
+			filter: "blur(10px)",
+		})
 		.to("#splash", {
 			opacity: 0,
 		})
@@ -72,6 +75,9 @@ const displaySplash = async function* () {
 		})
 		.to("#splash", {
 			visibility: "hidden",
+		})
+		.to("body", {
+			backgroundColor: "#fff6f1",
 		});
 };
 
